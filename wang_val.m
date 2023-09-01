@@ -50,7 +50,7 @@ trim = find(time >= 5 * P);
 moose_amp = abs(moose_pp_phasor);
 
 %% Wang Uniaxial (Eqn. 6.60 - Wang 2000)
-z = 1000;
+z = 100;
 
 arg = (1j*omega) / c;
 wang_phasor = gamma * atm_tide_amp * (1 - exp(-z * sqrt(arg)));
