@@ -38,7 +38,7 @@ time = res.time(2:end);
 trim = find(time >= 432000);
 
 num_files = 306;
-% porepressure = zeros(300,num_files-1);
+porepressure = zeros(300,num_files-1);
 for i = 2:num_files
     if i <= 10
         file_name = [file_prefix '000' num2str(i-1) '.csv'];
@@ -60,12 +60,17 @@ for i = 2:num_files
 end
 z = abs(data.z);
 for j = 1 : numel(z)
+%     [~, moose_phasor(j,:)] = periodic_LS_fit(time(trim), porepressure(j,trim)'-mean(porepressure(j,trim)), P);
     [~, moose_phasor(j,:)] = periodic_LS_fit(time(trim), porepressure(j,trim)'-mean(porepressure(j,trim)), P);
 end
 %% Wang Uniaxial (Eqn. 6.72 - Wang 2000)
-wang_phasor = (gamma*amp) + ((1-gamma) .* amp .* exp(-z.*sqrt(arg)) .* exp(-1j.*z.*sqrt(arg)));
+atm_tide = amp * sin (2*pi*(time./P)); % Atmospheric forcing signal
+[~, atm_tide_phasor] = periodic_LS_fit(time, atm_tide, P);
 
-%% Figures
+atm_tide_amp = abs(atm_tide_phasor);
+wang_amp = abs(atm_tide_phasor);
+wang_phasor = (gamma*wang_amp) + ((1-gamma).*wang_amp.*exp(-z.*sqrt(arg)).*exp(-1j.*z.*sqrt(arg)));
+
 figure
 clf
 subplot(1,2,1)
@@ -73,19 +78,19 @@ ax = gca;
 plot(abs(moose_phasor), z, '.', 'Color', [0.7592 0 0],...
     'MarkerSize', 12)
 hold on
-plot(abs(wang_phasor), z, 'LineWidth', 3, 'Color', [0 0.4470 0.7410])
+plot(abs(wang_phasor), z, 'LineWidth', 2, 'Color', [0 0.4470 0.7410])
 ax.YDir = 'reverse';
 xlabel('Amplitude (Pa)')
 ylabel('Depth (m)')
 ax.FontSize = 30;
-legend('Wang', 'MOOSE', 'Location', 'NorthWest')
+legend('Wang', 'MOOSE')
 
 subplot(1,2,2)
 ax = gca;
-plot(angle(moose_phasor)+pi/2, z, '.', 'Color', [0.7592 0 0],...
+plot(angle(moose_phasor), z, '.', 'Color', [0.7592 0 0],...
     'MarkerSize', 12)
 hold on
-plot(angle(wang_phasor), z, 'LineWidth', 3, 'Color', [0 0.4470 0.7410])
+plot(angle(wang_phasor), z, 'LineWidth', 2, 'Color', [0 0.4470 0.7410])
 ax.XTick = [-pi:pi/2:pi];
 ax.XTickLabel = {'-\pi', '-\pi/2', 0, '\pi/2', '\pi'};
 ax.YDir = 'reverse';

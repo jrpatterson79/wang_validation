@@ -3,19 +3,20 @@
 # the boundaries are impermeable, except the top boundary
 # only vertical displacement is allowed
 # the atmospheric pressure sets the total stress at the top of the model
-
+dt = 60
+end_time = 864000
 
 [Mesh]
   type = GeneratedMesh
   dim = 3
   nx = 1
   ny = 1
-  nz = 10
+  nz = 150
   xmin = 0
-  xmax = 10
+  xmax = 30
   ymin = 0
-  ymax = 10
-  zmin = -100
+  ymax = 30
+  zmin = -300
   zmax = 0
 []
 
@@ -54,11 +55,11 @@
   []
   [cyclic_porepressure]
     type = ParsedFunction
-    expression = 'if(t>0,5000 * sin(2 * pi * t / 3600.0 / 24.0),0)'
+    expression = 'if(t>0,5000 * sin(2 * pi * t / 86400),0)'
   []
   [neg_cyclic_porepressure]
     type = ParsedFunction
-    expression = '-if(t>0,5000 * sin(2 * pi * t / 3600.0 / 24.0),0)'
+    expression = '-if(t>0,5000 * sin(2 * pi * t / 86400),0)'
   []
 []
 
@@ -178,6 +179,17 @@
   []
 []
 
+[VectorPostprocessors]
+  [depth_pp]
+    type = LineValueSampler
+    variable = pp
+    start_point = '0 0 0'
+    end_point = '0 0 -300'
+    num_points = 900
+    sort_by = z
+    execute_on = 'INITIAL TIMESTEP_END'
+  []
+[]
 
 [Preconditioning]
   [andy]
@@ -189,11 +201,23 @@
 [Executioner]
   type = Transient
   solve_type = Newton
-  start_time = -3600 # so postprocessors get recorded correctly at t=0
-  dt = 3600
-  end_time = 864000
-  nl_abs_tol = 5E-7
-  nl_rel_tol = 1E-10
+  [TimeSteppers]
+    active = adaptive
+    [constant]
+      type = ConstantDT
+      dt = ${dt}
+    []
+    [adaptive]
+      type = IterationAdaptiveDT
+      dt = ${dt}
+      growth_factor = 1.05
+    []
+  []
+  dtmax = 3600
+  start_time = -${dt} # so postprocessors get recorded correctly at t=0
+  end_time = ${end_time}
+  # nl_abs_tol = 5E-7
+  # nl_rel_tol = 1E-10
 []
 
 [Outputs]
