@@ -216,8 +216,8 @@ end_time = 864000
   dtmax = 3600
   start_time = -${dt} # so postprocessors get recorded correctly at t=0
   end_time = ${end_time}
-  nl_abs_tol = 1e-10
-  nl_rel_tol = 1E-10
+  # nl_abs_tol = 5e-7
+  # nl_rel_tol = 1E-10
 []
 
 [Outputs]
